@@ -573,3 +573,17 @@ CREATE INDEX index_adi ON tb_müsteri (dogum_tarihi) WHERE dogum_tarihi between 
   ```
   CREATE INDEX CONCURRENTLY index_adi ON tablo_adi (kolon_adi,kolon_adi2)
   ```
+* Index silmek için **DROP INDEX** ifadesi kullanılır.
+
+# VIEW'LAR 
+
+* İçerisinde SQL sorgusu saklayan bir veritabanı nesnesidir. Varsayılan olarak nesne içerisinde veri saklamazlar.
+* Çağrıldıkları anda içersinde bulunan SQL cümlesi yorumlanarak, SQL sonucu geri dönderilir.
+* Birden fazla tablodaki karışık verileride birleştirerek verilere ulaşmamızı sağlar. Bu nedenle karmaşık verilere ulaşmakta oldukça faydalı nesnelerdir.
+* View'ları oluştururken **CREATE VIEW** komutu kullanılır.
+
+# FONKSİYONLAR 
+
+* Fonksiyonlar veritabanı seviyesinde işlem yapmamıza izin veren nesnelerdir. Yaptığımız proje içinde, basit ya da karmaşık işleri veritabanı seviyesinde yapmamızı sağlar.
+* PostgreSQL'de bir fonksiyon oluşturmak için **CREATE FUNCTION** ifadesi kullanılır:
+* Bir fonksiyonu silmek için **DROP FUNCTION** komutu kullanılır.
