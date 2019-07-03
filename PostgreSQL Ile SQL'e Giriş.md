@@ -8,12 +8,12 @@
 
 * Postgresql'de erişim hakları **pg_hba.conf** dosyasında tanımlanır.
 
-**trust** : Kullanıcıların veritabanına parolasız bağlanmasını sağlar.
-**rejet** : Erişimi reddeder.
-**md5**   : md5 formatında şifrelenmiş parola ile giriş gerektirir.
-**crypt** : Bağlantı için crypt formatında şifrelenmiş parola girmesi gerekir.
-**password** : Düz metin parola ile girişe izin verir.
-**pam** : PAM kullanarak yetkilendirme sağlar.
+* **trust** : Kullanıcıların veritabanına parolasız bağlanmasını sağlar.
+* **rejet** : Erişimi reddeder.
+* **md5**   : md5 formatında şifrelenmiş parola ile giriş gerektirir.
+* **crypt** : Bağlantı için crypt formatında şifrelenmiş parola girmesi gerekir.
+* **password** : Düz metin parola ile girişe izin verir.
+* **pam** : PAM kullanarak yetkilendirme sağlar.
 
 * **pg_hba.conf** dosyasında yapılan değişikliklerin PostgreSQL servisinin etkinleşmesi için "pg_reload_conf();" komutu kullanılır. Bu sayede işletim sistemine gitmeden işlem yapılabilir.
 
