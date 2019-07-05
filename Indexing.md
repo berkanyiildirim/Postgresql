@@ -43,7 +43,7 @@ postgres=# INSERT INTO foo (id, name) SELECT i, 'foo ' || i::text FROM generate_
 postgres=# EXPLAIN SELECT name FROM foo ;
                        QUERY PLAN                        
 ---------------------------------------------------------
- Seq Scan on foo  (cost=0.00..771.00 rows=5000000000 width=9)
+ Seq Scan on foo  (cost=0.00..771.00 rows=500000 width=9)
 (1 row)
 ```
 * foo tablosu üzerindeki tüm *name*'leri **sequential scan** yaparak baştan sona select etmiş olduk.Peki eğer spesifik bir satırı *select* etmek isteseydik?
@@ -69,8 +69,6 @@ postgres=# SELECT ctid, * FROM foo ;
  (0,4)     |     4 | foo 4
  (0,5)     |     5 | foo 5
  (0,6)     |     6 | foo 6
- (0,7)     |     7 | foo 7
- (0,8)     |     8 | foo 8
  --More--
 ```
 Yukarıda fiziksel konumunu bulduğumuz tablomuz aslından default 8K'lık *page*'ler olarak tutulur. Datalar bu 8K'lık *page*'ler içerisinde tutulur. *Explicitly* olarak tutulan **ctid** aslında bu pagelerdeki satırların yerini ifade eder. **ctid** değerindeki ilk column block(page) number, ikinci column ise offset(Tuple)'ı ifade eder.
@@ -272,13 +270,76 @@ CREATE INDEX idx_hash ON foo USING HASH (name);
 
 * BRIN (Block Range Index) datalar arasında bağlantı olduğu(tarihler vb.) zaman kullanılması uygundur.
 * BRIN index sadece :
-  * page number
-  * kolonun en küçük değeri
-  * kolonun en büyük
-'lerini tuttuğu için fiziksel alan bakımından en avantajlı olan türdür.
+  * Page number
+  * Min value of column
+  * Max value of column
+
+tuttuğu için fiziksel alan bakımından en avantajlı olan türdür.
 
 ```
 CREATE INDEX idx_btree ON foo USING BTREE(date); // Size of index = 21 MB
 CREATE INDEX idx_hash ON foo USING HASH (date);  // Size of index = 47 MB
 CREATE INDEX idx_brin ON foo USING BRIN (date); // Size of index = 48 KB
 ```
+
+## GIN Index 
+
+* GIN composite değerlerin indexlenmesini ele alır, oluşturulması yavaştır.
+* Composite değerlere index eklemek istediğimizde B-tree kullanamayız. Örneğin elimizde isim,telefon numrası, TC kimlik no bilgilerini tutan JSONB veri tipinde bir kolon ve bu kolonun sadece TC kimlik no kısmına index eklemek istenildiğinde **GIN Index** kullanılması daha verimli olacaktır.
+
+
+
+## WHERE and WHAT?
+
+* **B-Tree INDEX** : Farklı data tipleri.(common)
+* **HASH INDEX** : Eşitlik operetörü.
+* **BRIN** : Büyük sıralı ve arasında ilişki olan datasetler. (correlation with physical disk)
+* **GIN**  : Documents ve Arrays.
+* **GIST** : Full text search.
+
+## INDEX ONLY SCANS
+
+* Index oluşturunca asıl tablomuzdan ayrı bir şekilde tutulduğundan daha önce bahsetmiştik.
+* Normal bir sorguda hem asıl tablo(Heap) hemde index taranması gerekir.
+* Eğer *WHERE* komutuyla almak istediğimiz kısım zaten index içinde varsa tablomuza gitmeye gerek kalmaz. Bu durumda PostgreSQL verileri sadece indexten çeker.  
+
+```
+CREATE INDEX idx_btree_ios ON foo (id, name);
+```
+
+```
+EXPLAIN SELECT id, name,dt FROM foo WHERE id > 100000 AND id < 100010;
+                                QUERY PLAN                                 
+---------------------------------------------------------------------------
+ Index Scan using idx_btree_ios on foo  (cost=0.43..19.07 rows=7 width=19)
+   Index Cond: ((id > 100000) AND (id < 100010))
+(2 rows)
+```
+
+```
+EXPLAIN SELECT id, name FROM foo WHERE id > 100000 AND id < 100010;
+                                   QUERY PLAN                                   
+--------------------------------------------------------------------------------
+ Index Only Scan using idx_btree_ios on foo  (cost=0.43..10.32 rows=7 width=15)
+   Index Cond: ((id > 100000) AND (id < 100010))
+(2 rows)
+```
+
+**Unused Indexes**:
+* Zamanla birden çok index oluşturur ve bunları silmeyi unutabilir, istediğimiz performansı alamayabilir veya daha iyi bir index kurabiliriz.
+* Bu gibi durumlarda hangi index'e ihtiyacımız olduğunu görebilmek için : 
+
+```
+SELECT relname, indexrelname,idx_scan FROM pg_catalog.pg_stat_user_indexes;
+
+ relname | indexrelname  | idx_scan 
+---------+---------------+----------
+ foo     | idx_btree_ios |        2
+ foo     | foo_idx       |        0
+ foo     | idx_btree     |        0
+ foo     | idx_part      |        4
+ foo     | idx_full      |        6
+(5 rows)
+
+```
+* Görüldüğü gibi hiç kullanılmayan indexlerimiz mevcut. Disk alanını verimli kullanmak için gereksiz indexleri silebiliriz.
