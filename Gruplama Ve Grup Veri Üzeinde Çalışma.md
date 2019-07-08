@@ -41,3 +41,38 @@ GROUP BY dogdugu_sehir;
 (3 rows)
 ```
 *Eğer sonuç listemizin sıralamasını değiştirmek istiyorsak **ORDER BY** komutunu kullanabiliriz.*
+
+**ORDER BY**
+* ORDER BY komutu, sıralama düzenini belirtmek için kullanılmaktadır.  
+
+[![asciicast](https://asciinema.org/a/pgROGwxxUGb6rIeP9McD5xjg4.svg)](https://asciinema.org/a/pgROGwxxUGb6rIeP9McD5xjg4)
+
+* Sıralama yönünü artan veya azalan olarak ayarlamak için ASC (Ascending-Artan) veya DESC (Descending-Azalan) ifadeleri kullanılmaktadır.
+* Bazı durumlarda verileri belirli bir sıraya göre değilde rastgele çekme ihtiyacımız olur. Bu durumda rastgele bir değer çekmek için ;
+  ```
+  SELECT ogrenci_adi_soyadi FROM tb_ogreci ORDER BY random();
+  ```
+**HAVING**
+* Belirli bir koşulu karşılayamayan grup satırlarını filtrelemek için genellikle **GROUP BY** tümcesiyle birlikte **HAVING** tümcesi kullanılmaktadır.
+*  WHERE koşulu ile HAVING'i ayıran temel fark; WHERE koşulunda yer alan ifadeler GROUP BY ifadesinden önce işletilmekte ve tek tek satırlariçin koşulları ayarlanmaktayken; HAVING ise GROUP BY ifadesinden sonra oluşan ifadelerle grup satır koşullarını ayarlamaktadır.
+
+*tb_ogrenci tablomuzda ders adıve vize notuna göre gruplamayı yaptıktan sonra vize notu 50'den büyük olan dersleri ve vize notlarını bulalım:*
+```
+SELECT ders_adi, vize_notu FROM tb_ogrenci GROUP BY ders_adi, vize_notu HAVING vize_notu > 50;
+```
+
+**LIMIT-OFFSET**
+* Oluşturulan sorgu neticesinde gelen sonuçların sadece bir bölümünün seçilmesi istendiği durumlarda tercih edilir.
+* Çekilen veriler sınırlı sayıda isteniyorsa LIMIT; eğer belli sayıda veriyi atladıktan sonra sorgunun çalışması isteniyorsa OFFSET ifadeleri kullanılır.
+  ```
+  SELECT id,ogreci_adi_soyadi FROM tb_ogrenci LIMIT 3;
+
+   id |   ogreci_adi_soyadi   
+  ----+-----------------------
+   1 | berkan yıldırım
+  13 | Ibrahim Edip Kokdemir
+  28 | Dilara Tugce
+  (3 rows)
+
+  ```
+* Eğer sorguda ORDER BY kriteri yoksa limit ile çekilen sorguların her birinde farklı sonuçlar gelebilir. Bu sebeple LIMIT koşulunu kullanırken ORDER BY ile kullanmak önemli ve anlamlıdır.
