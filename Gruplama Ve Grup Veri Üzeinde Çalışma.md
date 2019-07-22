@@ -45,8 +45,6 @@ GROUP BY dogdugu_sehir;
 **ORDER BY**
 * ORDER BY komutu, sıralama düzenini belirtmek için kullanılmaktadır.  
 
-[![asciicast](https://asciinema.org/a/pgROGwxxUGb6rIeP9McD5xjg4.svg)](https://asciinema.org/a/pgROGwxxUGb6rIeP9McD5xjg4)
-
 * Sıralama yönünü artan veya azalan olarak ayarlamak için ASC (Ascending-Artan) veya DESC (Descending-Azalan) ifadeleri kullanılmaktadır.
 * Bazı durumlarda verileri belirli bir sıraya göre değilde rastgele çekme ihtiyacımız olur. Bu durumda rastgele bir değer çekmek için ;
   ```
