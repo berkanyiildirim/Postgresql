@@ -47,3 +47,29 @@ psql -l
 * DROP tablename;
 * CREATE DATABASE exDB;
 * SELECT * FROM weather; 
+
+## 11) Index size'ı öğrenmek için -------- fonksiyonunu kullanabiliriz.
+* pg_relation_size
+* information_schema.view_table_usage
+* pg_catalog.pg_constraint
+* pg_dump --version
+
+## 12)Bir veritabanında şema listesi almak için geçerli yollar hangileridir?
+* select nspname from pg_namespace;
+* \dn
+* psql -s
+* Yukarıdaki ilk iki seçenek
+
+## 13)Veritabanındaki tabloların bir listesini almanın geçerli yolları nelerdir?
+* select tablename from pg_tables;
+* \dt *.*
+* select relname, relkind from pg_class where relkind = 'r';
+* Hepsi
+
+## 14) Şema search path postgresql'de nasıl bulunur?
+* show search_path; 
+* show search path;
+* select * from search_path
+* select * from paths where name = 'search'
+
+## 15)
