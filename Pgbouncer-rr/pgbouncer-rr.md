@@ -146,7 +146,7 @@ dev.2 = host=10.0.0.2 port=5432 dbname=postgres
 - **listen_port**  TCP bağlantılarını dinlemek istediğiniz adres.  `*` tüm adresleri ifade eder.
 -  **auth_type & auth_file**, PgBouncer'a bağlanırken kullanıcıların kimliğini nasıl doğrulamasını istediğinizi belirtir. users.txt dosyası kullanıcı ismi ve şifre ikilisi içerir. 
 
-**örnek users.txt**
+**örnek auth_file**
 ```
 "app1" "md5<MD5 hash password+username>"
 "app2" "md5<MD5 hash password+username>"
