@@ -111,7 +111,7 @@ Büyük olasılıkla, istenmeyen eşleşmelerden kaçınmaya özen göstererek d
 
  
 # Kurulum & Yapılandırma
-Aşağıdaki komutları takip pgbouncer-rr'yi indirip yükleyin (Amazon Linux / RHEL / CentOS):
+Aşağıdaki komutları takip ederek pgbouncer-rr'yi indirip yükleyin (Amazon Linux / RHEL / CentOS):
 
 [![asciicast](https://asciinema.org/a/15mGJZs5YpMGRYIA3vAyflFGK.svg)](https://asciinema.org/a/15mGJZs5YpMGRYIA3vAyflFGK)
 
