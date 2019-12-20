@@ -224,7 +224,6 @@ Partitioning için aşağıdaki sınırlamalar geçerlidir:
 
 **Kaynaklar**
 * https://www.postgresql.org/docs/11/static/ddl-partitioning.html
-* https://zaiste.net/table_inheritance_and_partitioning_with_postgresql/ 
 * https://blog.2ndquadrant.com/partitioning-improvements-pg11/https://pgdash.io/blog/partition-postgres-11.html
  
 
