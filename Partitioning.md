@@ -214,103 +214,13 @@ CREATE TABLE measurement_y2016 PARTITION OF measurement
 ```
 
 # Limitations 
-* Partitioning, desteklenmeyen çeşitli özelliklere izin veren tablo Inheritance kullanılarak gerçekleştirilebilir:
-* logs isimli bir parent tablo oluşturarak başlayalım
-```
-CREATE TABLE logs (
-  created_at timestamp without time zone default now(),
-  content text);
-```
-* Tabloyu tarihe göre yılın dört çeyreğine ayıracağız.
-```
-CREATE TABLE logs_q1(
-  CHECK (created_at >= date '2014-01-01' and created_at <= date '2014-03-31')
-) inherits (logs);
-
-CREATE TABLE logs_q2(
-  CHECK (created_at >= date '2014-04-01' and created_at <= date '2014-06-30')
-) inherits (logs);
-
-CREATE TABLE logs_q3(
-  CHECK (created_at >= date '2014-07-01' and created_at <= date '2014-09-30')
-) inherits (logs);
-
-CREATE TABLE logs_q4(
-  CHECK (created_at >= date '2014-10-01' and created_at <= date '2014-12-30')
-) inherits (logs);
-```
-* Bir sonraki adım, her alt tablonun ana sütununda indeksler oluşturmaktır.
-
-```
-create index logs_q1_created_at on logs_q1 using btree (created_at);
-create index logs_q2_created_at on logs_q2 using btree (created_at);
-create index logs_q3_created_at on logs_q3 using btree (created_at);
-create index logs_q4_created_at on logs_q4 using btree (created_at);
-```
-* Ardından, verileri alt tablolar arasında göndermek için bir tetikleyici işlevi oluşturalım.
-```
-create or replace function on_logs_insert() returns trigger as $$
-begin
-    if ( new.created_at >= date '2014-01-01' and new.created_at <= date '2014-03-31') then
-        insert into logs_q1 values (new.*);
-    elsif ( new.created_at >= date '2014-04-01' and new.created_at <= date '2014-06-30') then
-        insert into logs_q2 values (new.*);
-    elsif ( new.created_at >= date '2014-07-01' and new.created_at <= date '2014-09-30') then
-        insert into logs_q3 values (new.*);
-    elsif ( new.created_at >= date '2014-10-01' and new.created_at <= date '2014-12-31') then
-        insert into logs_q4 values (new.*);
-    else
-        raise exception 'created_at date out of range';
-    end if;
-
-    return null;
-end;
-$$ language plpgsql;
-
-CREATE FUNCTION
-```
-
-* tanımlanan tetikleyici işlevini logs tablosuna ekleyelim. 
-
-```
-create trigger logs_insert
-  before insert on logs
-  for each row execute procedure on_logs_insert();
-
-CREATE TRIGGER
-```
-* Son olarak, partitionları görmek için bazı verileri logs tablosuna ekleyelim.
-```
-insert into logs (created_at, content) 
-  values(date '2014-02-03', 'Content 1'),
-        (date '2014-03-11', 'Content 2'),
-        (date '2014-04-13', 'Content 3'),
-        (date '2014-07-08', 'Content 4'),
-        (date '2014-10-23', 'Content 5');
-```
-```
-select * from logs_q1;
-     created_at      |  content
----------------------+-----------
- 2014-02-03 00:00:00 | Content 1
- 2014-03-11 00:00:00 | Content 2
-
-select * from logs_q2;
-     created_at      |  content
----------------------+-----------
- 2014-04-13 00:00:00 | Content 3
-
-select * from logs_q3;
-     created_at      |  content
----------------------+-----------
- 2014-07-08 00:00:00 | Content 4
-
-select * from logs_q4;
-     created_at      |  content
----------------------+-----------
- 2014-10-23 00:00:00 | Content 5
-
-```
+Partitioning için aşağıdaki sınırlamalar geçerlidir:
+- Tüm partitionlarda eşleşen dizinleri otomatik olarak oluşturmak için hiçbir imkan yoktur. Her bölüme ayrı komutlarla indeks eklenmelidir. Bu ayrıca, tüm bölümleri kapsayan bir birincil anahtar, benzersiz kısıtlama veya dışlama kısıtı oluşturmanın bir yolu olmadığı anlamına gelir; Her bir yaprak bölümünü tek tek sınırlamak mümkündür
+- Birincil anahtarlar partitioning tablolarda desteklenmediğinden, bölümlenmiş tabloları gösteren yabancı anahtarlar desteklenmez, bölümlenmiş bir tablodan başka bir tabloya yabancı anahtar başvuruları da desteklenmez.
+- `ON CONFLICT` ifadesini bölümlenmiş tablolarla kullanmak hataya neden olur, çünkü  unique veya exclusion kısıtlamaları yalnızca bireysel bölümlerde yaratılmıştır. Tüm bölümleme hiyerarşisinde benzersizliği (veya bir exclusion kısıtlamasını) zorlama desteği yoktur.
+-  Bir satırın bir partitiondan diğerine hareket etmesine neden olan bir `UPDATE` başarısız olur, çünkü satırın yeni değeri orijinal bölümün örtülü bölüm sınırlamasını yerine getiremez.
+-  Row triggers, gerekirse, bölümlenmiş tabloda değil, tek tek bölümlerde tanımlanmalıdır.
+- Geçici ve kalıcı ilişkilerin aynı bölüm ağacında karıştırılmasına izin verilmez. Bu nedenle, bölümlenmiş tablo kalıcı ise, bölümler de aynı olmalıdır ve bölümlenmiş tablo geçici ise aynı şekilde olmalıdır. Geçici ilişkiler kullanılırken, bölüm ağacının tüm üyeleri aynı oturumdan olmak zorundadır.
 
 **Kaynaklar**
 * https://www.postgresql.org/docs/11/static/ddl-partitioning.html
